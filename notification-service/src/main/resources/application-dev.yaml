@@ -1,0 +1,67 @@
+spring:
+  application:
+    name: notification-service
+
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+      mail.smtp.starttls.required: true
+
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
+
+    listener:
+      concurrency: 3
+
+    consumer:
+      group-id: email-notification-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.value.default.type: com.ic.notification.contract.NotificationEvent
+        spring.json.trusted.packages: "*"
+
+    properties:
+      security.protocol: SSL
+    ssl:
+      trust-store-location: classpath:/client-certs/client.truststore.jks
+      trust-store-password: safePassword123
+      key-store-location: classpath:/client-certs/client.keystore.p12
+      key-store-password: safePassword123
+
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,env,beans,mappings,prometheus
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    tags:
+      application: notification-service
+    enable:
+      http.server.requests: true
+
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+
+
+eureka:
+  client:
+    enabled: false
+    register-with-eureka: false
+    fetch-registry: false
+
+
+topics:
+  email: notification.email
+  slack: notification.slack
